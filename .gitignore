@@ -1,0 +1,12 @@
+
+#Mininet-related folders
+oflops/
+oftest/
+openflow/
+pox/
+mininet-fattree/
+
+#Other files
+*.pyc
+*.png
+*.log
