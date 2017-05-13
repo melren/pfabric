@@ -5,6 +5,7 @@ oftest/
 openflow/
 pox/
 mininet-fattree/
+MiniNet/
 
 #Other files
 *.pyc
