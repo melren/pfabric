@@ -17,7 +17,9 @@ Pass '--topo=fattree' from the command line
 
 from mininet.topo import Topo
 from mininet.node import OVSSwitch
- 
+from mininet.link import TCLink
+from mininet.net import Mininet
+
 class OVSBridgeSTP( OVSSwitch ):
     """Open vSwitch Ethernet bridge with Spanning Tree Protocol
        rooted at the first bridge that is created"""
@@ -35,8 +37,7 @@ switches = { 'ovs-stp': OVSBridgeSTP }
 
 class FatTree( Topo ):
 
-   # def __init__( self ):
-    def build( self ):
+    def __init__( self ):
         # Topology settings
         K = 6                           # K-ary FatTree
         podNum = K                      # Pod number in FatTree
@@ -44,10 +45,10 @@ class FatTree( Topo ):
         aggrSwitchNum = ((K/2)*K)       # Aggregation switches
         edgeSwitchNum = ((K/2)*K)       # Edge switches
         hostNum = (K*pow((K/2),2))      # Hosts in K-ary FatTree
-        linkopts = dict(bw=10000, delay ='2us')
+        linkopts = dict(bw=1000, delay ='2us')
         
         # Initialize topology
-        #Topo.__init__( self )
+        Topo.__init__( self )
 
         coreSwitches = []
         aggrSwitches = []
@@ -70,9 +71,10 @@ class FatTree( Topo ):
                 edgeThis = self.addSwitch("es_"+str(pod)+"_"+str(edge))
                 edgeSwitches.append(edgeThis)
                 for x in range((edgeSwitchNum/podNum)*pod, ((edgeSwitchNum/podNum)*(pod+1))):
-                    self.addLink(edgeThis, aggrSwitches[x])
+                    self.addLink(edgeThis, aggrSwitches[x],**linkopts)
         # Host
                 for x in range(0, (hostNum/podNum/(edgeSwitchNum/podNum))):
-                    self.addLink(edgeThis, self.addHost("h_"+str(pod)+"_"+str(edge)+"_"+str(x)))
+                    self.addLink(edgeThis, self.addHost("h_"+str(pod)+"_"+str(edge)+"_"+str(x)),**linkopts)
 
 topos = { 'fattree': ( lambda: FatTree() ) }
+
