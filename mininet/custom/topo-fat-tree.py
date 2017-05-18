@@ -37,9 +37,9 @@ switches = { 'ovs-stp': OVSBridgeSTP }
 
 class FatTree( Topo ):
 
-    def __init__( self ):
+    def __init__( self, k ):
         # Topology settings
-        K = 6                           # K-ary FatTree
+        K = k	                        # K-ary FatTree
         podNum = K                      # Pod number in FatTree
         coreSwitchNum = pow((K/2),2)    # Core switches 
         aggrSwitchNum = ((K/2)*K)       # Aggregation switches
@@ -76,5 +76,5 @@ class FatTree( Topo ):
                 for x in range(0, (hostNum/podNum/(edgeSwitchNum/podNum))):
                     self.addLink(edgeThis, self.addHost("h_"+str(pod)+"_"+str(edge)+"_"+str(x)),**linkopts)
 
-topos = { 'fattree': ( lambda: FatTree() ) }
+topos = { 'fattree': ( lambda k : FatTree(k) ) }
 
