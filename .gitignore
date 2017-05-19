@@ -6,7 +6,10 @@ openflow/
 pox/
 MiniNet/
 
-#Other files
+#Other file types to ignore
 *.pyc
 *.png
 *.log
+
+#Experimental code
+sendflow.py
