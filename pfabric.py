@@ -24,17 +24,20 @@ parser.add_argument('--cong','-c',
 		    help="Type of congestion control, use: 'tcp', 'mintcp', or 'none'(udp)",
 		    required=True)
 parser.add_argument('--kary', '-k',
-		    help="Size of K for fat tree topology, default = 6",
+		    help="Size of K for fat tree topology, default = 3",
 		    type=int,
-                    default=6)
+                    default=3)
 parser.add_argument('--hosts', '-n',
 		    help="Number of hosts to use for star topology, default = 54",
                     type=int,
 		    default=54)
+parser.add_argument('--topo',
+                    help="Type of topology to use for network: 'star' or 'fattree', default = star",
+		    default="star")
 
 args = parser.parse_args()
 
-def adjustSysSettings(cong, hosts, k):
+def adjustSysSettings(cong, topo):
     if(cong!="none"):
         print "Changing TCP and buffer queue size settings..."
         os.system("sudo ./congestion/%s.sh" % cong)
@@ -46,11 +49,24 @@ def adjustSysSettings(cong, hosts, k):
             # TCP-DropTail qSize = 230400 bytes (225KB)
             qSize = (230400/1460)
 
-        #size = (k/2)**2 * k
-        size = hosts
+        if(topo=="star"):
+            size = args.hosts
 
-        for n in range(size):
-            os.system("sudo ifconfig s0-eth%d txqueuelen %d" % (n,qSize))
+            for n in range(0,size):
+                os.system("sudo ifconfig s0-eth%d txqueuelen %d" % (n,qSize))
+        else:
+            # size = (args.kary/2)**2 * args.kary
+            csNum = (args.kary/2)**2
+            asNum = ((args.kary/2)*args.kary)
+            # esNum = asNum
+        
+            for i in range(0,csNum):
+                for j in range(0,args.kary):
+                    os.system("sudo ifconfig cs_%d-eth%d txqueuelen %d" % (i, j, qSize+1))
+            for i in range(0,asNum):
+                for j in range(0,args.kary):
+                    os.system("sudo ifconfig as_%d_0-eth%d txqueuelen %d" % (i, j, qSize+1))
+                    os.system("sudo ifconfig es_%d_0-eth%d txqueuelen %d" % (i, j, qSize+1))
 
 def resetSystem():
     print "Restoring pre-run system settings..."
@@ -64,12 +80,14 @@ def main():
     
 
     # Setup topology
-    # topo = FatTree(args.kary)
-    topo = StarTopo(args.hosts)
+    if(args.topo=="fattree"):
+        topo = FatTree(args.kary)
+    else:
+        topo = StarTopo(args.hosts)
     net = Mininet(topo=topo,link=TCLink)
     net.start()
     #CLI(net)
-    adjustSysSettings(args.cong, args.hosts, args.kary)
+    adjustSysSettings(args.cong, args.topo)
     net.pingAll()
 
     
