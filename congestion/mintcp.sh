@@ -14,7 +14,6 @@ sysctl -w net.ipv4.tcp_fack=0
 sysctl -w net.ipv4.tcp_fastopen=0
 sysctl -w net.ipv4.tcp_frto=0
 sysctl -w net.ipv4.tcp_rfc1337=0
-sysctl -w net.ipv4.tcp_sack=0
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
 sysctl -w net.ipv4.tcp_syncookies=0
 sysctl -w net.ipv4.tcp_timestamps=1

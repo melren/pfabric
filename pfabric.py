@@ -34,15 +34,27 @@ parser.add_argument('--hosts', '-n',
 
 args = parser.parse_args()
 
-def adjustCongCtrl(cong):
+def adjustSysSettings(cong, hosts, k):
     if(cong!="none"):
-        print "Changing TCP settings..."
+        print "Changing TCP and buffer queue size settings..."
         os.system("sudo ./congestion/%s.sh" % cong)
+        qSize = 1000
+        if(cong=="mintcp"):
+            # MTU = 1460 bytes, pFabric qSize = 36864 bytes (36KB)
+            qSize = (36864/1460)
+        if(cong=="tcp"):
+            # TCP-DropTail qSize = 230400 bytes (225KB)
+            qSize = (230400/1460)
+
+        #size = (k/2)**2 * k
+        size = hosts
+
+        for n in range(size):
+            os.system("sudo ifconfig s0-eth%d txqueuelen %d" % (n,qSize))
 
 def resetSystem():
     print "Restoring pre-run system settings..."
     os.system("sudo ./congestion/tcp.sh")
-    # Additional reset settings
 
 def main():
     runstart = time()
@@ -50,15 +62,14 @@ def main():
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
-    adjustCongCtrl(args.cong)
 
     # Setup topology
     # topo = FatTree(args.kary)
     topo = StarTopo(args.hosts)
     net = Mininet(topo=topo,link=TCLink)
     net.start()
-
-    dumpNodeConnections(net.hosts)
+    #CLI(net)
+    adjustSysSettings(args.cong, args.hosts, args.kary)
     net.pingAll()
 
     
