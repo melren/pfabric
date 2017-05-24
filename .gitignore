@@ -5,6 +5,7 @@ oftest/
 openflow/
 pox/
 MiniNet/
+outputs/
 
 #Other file types to ignore
 *.pyc
