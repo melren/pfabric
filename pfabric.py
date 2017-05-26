@@ -10,7 +10,8 @@ from argparse import ArgumentParser
 from time import sleep, time
 from fattopo import FatTree, OVSBridgeSTP
 from startopo import StarTopo
-from workloads import *
+#from workloads import *
+from flows import flow
 
 import os
 import random
@@ -39,6 +40,17 @@ parser.add_argument('--topo',
 		    default="star")
 
 args = parser.parse_args()
+
+if args.cong not in ['tcp', 'mintcp', 'none']:
+    parser.error('Wrong congestion method, use: tcp, mintcp, or none')
+if args.traffic not in ['web','data']:
+    parser.error('Wrong traffic type, use: web or data')
+if args.kary < 1 or args.kary > 3:
+    parser.error('Value of k must be between 1 and 3')
+if args.hosts < 1:
+    parser.error('Number of hosts must be at least 1')
+if args.topo not in ['star','fattree']:
+    parser.error('Wrong network topology, use: star or fattree')
 
 def adjustSysSettings(cong, topo):
     if(cong!="none"):
@@ -81,6 +93,11 @@ def main():
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
+    workload = ""
+    if args.traffic == 'web':
+        workload = 'flows/websearch.txt'
+    else:
+        workload = 'flows/datamining.txt'
 
     # Setup topology
     if(args.topo=="fattree"):
@@ -100,19 +117,19 @@ def main():
     # Do this in the sender/receiver: Run tests for traffic type and save outputs
     random.seed(1111)
    
-    # returns a list of 100 flow sizes in bytes for the given traffic type
-    flows = getFlowDist(args.traffic)    
-    
+    newflow = flow(workload)
+
     # bin the flow sizes into 16 bins
-    binSize = np.max(flows)/16
+    binSize = newflow.maxSize()/16
 
     # grab a random flowSize per flow, determine how many flows to send, bin packets into 16 priorities 
     
     # Testing seed for consistent results 
-    flowSize = random.choice(flows)
-    f2 = random.choice(flows)
-    f3 = random.choice(flows)
-    print "The average flow size is %d, and the selected flow sizes are %d,%d,%d" % (np.mean(flows), flowSize,f2,f3)
+    randomflows = []
+    for i in range (10):
+        randomflows.append(newflow.randomSize())
+        print "The chosen flow size is %d" % randomflows[i]
+    print "The average flow size is %d" % newflow.meanSize()
     
     net.stop()
 
