@@ -58,16 +58,16 @@ def adjustSysSettings(cong, topo):
         os.system("sudo ./congestion/%s.sh" % cong)
         qSize = 1000
         if(cong=="mintcp"):
-            # MTU = 1460 bytes, pFabric qSize = 36864 bytes (36KB)
-            qSize = (36864/1460)
+            # MTU = 1460 bytes, pFabric qSize = 36864 bytes ~ 36KB
+            qSize = (36000/1460)
         if(cong=="tcp"):
-            # TCP-DropTail qSize = 230400 bytes (225KB)
-            qSize = (230400/1460)
+            # TCP-DropTail qSize = 230400 bytes ~ 225KB
+            qSize = (225000/1460)
 
         if(topo=="star"):
             size = args.hosts
 
-            for n in range(0,size):
+            for n in range(1,size+1):
                 os.system("sudo ifconfig s0-eth%d txqueuelen %d" % (n,qSize))
         else:
             # size = (args.kary/2)**2 * args.kary
@@ -112,7 +112,7 @@ def addDelayQDisc(switch):
             #clear any old queueing disciplines
             switch.cmd("tc qdisc del dev {} root".format(str(intf)))
             device_str = "add dev "+str(intf)
-            
+
             print switch.cmd("tc qdisc "+device_str+" root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
             for i in range(1,17):
                 #add bandwidth limit
