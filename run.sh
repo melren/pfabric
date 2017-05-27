@@ -8,9 +8,10 @@ runtime=180
 declare -a traffic=("web" "data")
 declare -a cong=("tcp" "mintcp" "none")
 
+sudo rm -rf outputs
+
 for t in "${traffic[@]}"
 do
-    # sudo rm -rf [oldsavefiles]
 
     for c in "${cong[@]}"
     do

@@ -133,7 +133,7 @@ def addDelayQDisc(switch):
 
 def main():
     runstart = time()
-    outdir = "%s%s" % (args.out,args.cong)
+    outdir = "%s/%s_%s" % (args.out,args.traffic,args.cong)
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
