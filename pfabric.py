@@ -30,13 +30,17 @@ parser.add_argument('--cong','-c',
 parser.add_argument('--kary', '-k',
             help="Size of K for fat tree topology, default = 3",
             type=int,
-                    default=3)
+            default=3)
 parser.add_argument('--hosts', '-n',
             help="Number of hosts to use for star topology, default = 54",
-                    type=int,
+            type=int,
             default=54)
+parser.add_argument('--time',
+            help="Time for each sender to send flows",
+            type=int,
+            default=180)
 parser.add_argument('--topo',
-                    help="Type of topology to use for network: 'star' or 'fattree', default = star",
+            help="Type of topology to use for network: 'star' or 'fattree', default = star",
             default="star")
 
 args = parser.parse_args()
@@ -49,6 +53,8 @@ if args.kary < 1 or args.kary > 3:
     parser.error('Value of k must be between 1 and 3')
 if args.hosts < 1:
     parser.error('Number of hosts must be at least 1')
+if args.time < 60:
+    parser.error('Runtime too short')
 if args.topo not in ['star','fattree']:
     parser.error('Wrong network topology, use: star or fattree')
 
@@ -153,7 +159,7 @@ def main():
     #for intf in switch.intfList():
     #    print switch.cmd("tc qdisc show dev "+str(intf))
 
-    CLI(net)
+    #CLI(net)
     #adjustSysSettings(args.cong, args.topo)
     #net.pingAll()
 
@@ -178,12 +184,12 @@ def main():
 #         print "The chosen flow size is %d" % randomflows[i]
 #     print "The average flow size is %d" % newflow.meanSize()
     
-#     net.stop()
+    net.stop()
 
 #     # Plot experimental outputs
     
-#     resetSystem()
-#     print "Program completed in %.2fs" % (time()-runstart)
+    resetSystem()
+    print "Program for congestion control:%s, traffic type:%s completed in %.2fs" % (args.cong, args.traffic,time()-runstart)
 if __name__ == '__main__':
     main()
     

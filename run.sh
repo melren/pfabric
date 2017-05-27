@@ -1,7 +1,21 @@
 #!/bin/bash
 
 #clean up mininet
-#mn -c
+sudo mn -c
 
-# Preliminary run command, need to loop this for each workload and control/scheduling type
-python pfabric.py -t web -c tcp
+hosts=15
+runtime=180
+declare -a traffic=("web" "data")
+declare -a cong=("tcp" "mintcp" "none")
+
+for t in "${traffic[@]}"
+do
+    # sudo rm -rf [oldsavefiles]
+
+    for c in "${cong[@]}"
+    do
+        sudo python pfabric.py -c $c -t $t -n $hosts --time $runtime
+    done
+
+
+done
