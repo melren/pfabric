@@ -15,29 +15,29 @@ from flows import flow
 
 import os
 import random
-import numpy as np
+#import numpy as np
 
 parser = ArgumentParser(description="Runs pFabric Implementation")
 parser.add_argument('--out', '-o',
-		    help="Directory to store outputs",
-		    default="outputs/")
+            help="Directory to store outputs",
+            default="outputs/")
 parser.add_argument('--traffic', '-t',
-		    help="Type of traffic, use: 'web' or 'data'",
-		    required=True)
+            help="Type of traffic, use: 'web' or 'data'",
+            required=True)
 parser.add_argument('--cong','-c',
-		    help="Type of congestion control, use: 'tcp', 'mintcp', or 'none'(udp)",
-		    required=True)
+            help="Type of congestion control, use: 'tcp', 'mintcp', or 'none'(udp)",
+            required=True)
 parser.add_argument('--kary', '-k',
-		    help="Size of K for fat tree topology, default = 3",
-		    type=int,
+            help="Size of K for fat tree topology, default = 3",
+            type=int,
                     default=3)
 parser.add_argument('--hosts', '-n',
-		    help="Number of hosts to use for star topology, default = 54",
+            help="Number of hosts to use for star topology, default = 54",
                     type=int,
-		    default=54)
+            default=54)
 parser.add_argument('--topo',
                     help="Type of topology to use for network: 'star' or 'fattree', default = star",
-		    default="star")
+            default="star")
 
 args = parser.parse_args()
 
@@ -87,6 +87,44 @@ def resetSystem():
     print "Restoring pre-run system settings..."
     os.system("sudo ./congestion/tcp.sh")
 
+def addPriorityQDisc(switch):
+    for intf in switch.intfList():
+        if (str(intf)!="lo"):
+            #clear any old queueing disciplines
+            switch.cmd("tc qdisc del dev {} root".format(str(intf)))
+            device_str = "add dev "+str(intf)
+            print switch.cmd("tc qdisc "+device_str+" root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
+            for i in range(1,17):
+                #add bandwidth limit
+                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 1000mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
+
+                #add delay 
+                delay = "6us"
+                print switch.cmd("tc qdisc {} parent {}:1 handle {}: netem delay {}".format(device_str, hex(i+10), i+20, delay))
+
+                #start matching at capital 'A' onwards (i.e. 'A' = priority 1, 'P' = priority 16)
+                switch.cmd("tc filter {} parent 1:0 protocol ip u32 match u8 {} 0xff at 52 flowid 1:{}".format(device_str, hex(i+64), hex(i)))
+                
+
+def addDelayQDisc(switch):
+    for intf in switch.intfList():
+        if (str(intf)!="lo"):
+            #clear any old queueing disciplines
+            switch.cmd("tc qdisc del dev {} root".format(str(intf)))
+            device_str = "add dev "+str(intf)
+            
+            print switch.cmd("tc qdisc "+device_str+" root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
+            for i in range(1,17):
+                #add bandwidth limit
+                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 1000mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
+
+                #add delay based on priority (low priority = high delay)
+                delay = str(i*500) + "ms"
+                print switch.cmd("tc qdisc {} parent {}:1 handle {}: netem delay {}".format(device_str, hex(i+10), i+20, delay))
+
+                #start matching at capital 'A' onwards (i.e. 'A' = priority 1, 'P' = priority 16)
+                switch.cmd("tc filter {} parent 1:0 protocol ip u32 match u8 {} 0xff at 52 flowid 1:{}".format(device_str, hex(i+64), hex(i)))
+
 def main():
     runstart = time()
     outdir = "%s%s" % (args.out,args.cong)
@@ -106,37 +144,46 @@ def main():
         topo = StarTopo(args.hosts)
     net = Mininet(topo=topo,link=TCLink)
     net.start()
-    #CLI(net)
-    adjustSysSettings(args.cong, args.topo)
-    net.pingAll()
+
+
+    switch = net.get('s0')
+    addDelayQDisc(switch)
+
+    #debug
+    #for intf in switch.intfList():
+    #    print switch.cmd("tc qdisc show dev "+str(intf))
+
+    CLI(net)
+    #adjustSysSettings(args.cong, args.topo)
+    #net.pingAll()
 
     
-    # Setup routing: If congestion control is mintcp or none, use pfabric
-    # Setup connection sockets
+#     # Setup routing: If congestion control is mintcp or none, use pfabric
+#     # Setup connection sockets
     
-    # Do this in the sender/receiver: Run tests for traffic type and save outputs
-    random.seed(1111)
+#     # Do this in the sender/receiver: Run tests for traffic type and save outputs
+#     random.seed(1111)
    
-    newflow = flow(workload)
+#     newflow = flow(workload)
 
-    # bin the flow sizes into 16 bins
-    binSize = newflow.maxSize()/16
+#     # bin the flow sizes into 16 bins
+#     binSize = newflow.maxSize()/16
 
-    # grab a random flowSize per flow, determine how many flows to send, bin packets into 16 priorities 
+#     # grab a random flowSize per flow, determine how many flows to send, bin packets into 16 priorities 
     
-    # Testing seed for consistent results 
-    randomflows = []
-    for i in range (10):
-        randomflows.append(newflow.randomSize())
-        print "The chosen flow size is %d" % randomflows[i]
-    print "The average flow size is %d" % newflow.meanSize()
+#     # Testing seed for consistent results 
+#     randomflows = []
+#     for i in range (10):
+#         randomflows.append(newflow.randomSize())
+#         print "The chosen flow size is %d" % randomflows[i]
+#     print "The average flow size is %d" % newflow.meanSize()
     
-    net.stop()
+#     net.stop()
 
-    # Plot experimental outputs
+#     # Plot experimental outputs
     
-    resetSystem()
-    print "Program completed in %.2fs" % (time()-runstart)
+#     resetSystem()
+#     print "Program completed in %.2fs" % (time()-runstart)
 if __name__ == '__main__':
     main()
     
