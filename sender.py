@@ -133,8 +133,6 @@ def main():
 
     #calculate rate (lambda) of the Poisson process representing flow arrivals
     rate = (bw*load*(1000000000) / (meanFlowSize*8.0/1460*1500))
-    with open(outfile, "a") as f:
-        f.write("Rate: {}\n".format(rate))
 
     start = time.time()
     while (time.time() - start) < runtime:
