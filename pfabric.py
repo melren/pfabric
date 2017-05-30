@@ -55,7 +55,7 @@ if args.topo not in ['star','fattree']:
 def adjustSysSettings(cong, topo):
     if(cong!="none"):
         print "Changing TCP and buffer queue size settings..."
-        os.system("sudo ./congestion/%s.sh" % cong)
+        os.system("sudo ./congestion/%s.sh>/dev/null" % cong)
         qSize = 1000
         if(cong=="mintcp"):
             # MTU = 1460 bytes, pFabric qSize = 36864 bytes (36KB)
@@ -67,8 +67,9 @@ def adjustSysSettings(cong, topo):
         if(topo=="star"):
             size = args.hosts
 
-            for n in range(0,size):
+            for n in range(1,size+1):
                 os.system("sudo ifconfig s0-eth%d txqueuelen %d" % (n,qSize))
+            print "Successfully changed queue length"
         else:
             # size = (args.kary/2)**2 * args.kary
             csNum = (args.kary/2)**2
@@ -85,7 +86,7 @@ def adjustSysSettings(cong, topo):
 
 def resetSystem():
     print "Restoring pre-run system settings..."
-    os.system("sudo ./congestion/tcp.sh")
+    os.system("sudo ./congestion/tcp.sh>/dev/null")
 
 def main():
     runstart = time()
@@ -108,7 +109,7 @@ def main():
     net.start()
     #CLI(net)
     adjustSysSettings(args.cong, args.topo)
-    net.pingAll()
+    #net.pingAll()
 
     
     # Setup routing: If congestion control is mintcp or none, use pfabric
