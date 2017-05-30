@@ -162,10 +162,11 @@ def main():
     net.start()
 
 
-    print "Starting experiment..."
-    #add priority queuing to switch
-    # switch = net.get('s0')
-    # addDelayQDisc(switch)
+    adjustSysSettings(args.cong, topo)
+   
+    if args.cong!="tcp": #add priority queuing to switch if needed
+        switch = net.get('s0')
+        addDelayQDisc(switch)
 
     #debug
     #for intf in switch.intfList():
@@ -174,7 +175,9 @@ def main():
     loadList = [x/10.0 for x in range(1,9)]
     hostList = makeHostList(net) #make list of host IP addresses
 
-   #start receiver on every host
+    print "Starting experiment..."
+
+    #start receiver on every host
     for hostStr in net.keys():
         if "h" in hostStr:
             host = net.get(hostStr)
