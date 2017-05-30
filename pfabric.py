@@ -105,7 +105,7 @@ def addPriorityQDisc(switch):
             print switch.cmd("tc qdisc "+device_str+" root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
             for i in range(1,17):
                 #add bandwidth limit
-                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 1000mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
+                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 100mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
 
                 #add delay 
                 delay = "6us"
@@ -125,7 +125,7 @@ def addDelayQDisc(switch):
             print switch.cmd("tc qdisc "+device_str+" root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
             for i in range(1,17):
                 #add bandwidth limit
-                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 1000mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
+                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 100mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
 
                 #add delay based on priority (low priority = high delay)
                 delay = str(i*500) + "ms"

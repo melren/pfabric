@@ -75,34 +75,51 @@ class Sender(object):
             payload = "0"*1023 
             packet = self.prioMap[priority] + payload
 
-            if self.cong != "none":
-                socket.send(packet)
-            else:
-                socket.sendto(packet, (destIP, self.destPort))
-
+            socket.send(packet)
+           
             toSend = toSend - 1 #decrement bytes left to send by 1kb
 
         FCT = time.time() - flowStartTime
         return (flowSize, FCT)
 
+    def sendFlowLineRate(self, socket, destIP):
+        flowSize = self.flow.randomSize()
+        toSend = flowSize
+        flowStartTime = time.time()
+
+        while toSend > 0:
+            if (time.time() - self.starttime) > self.runtime:
+                return None
+            
+            priority = self.flow.getPriority(flowSize)
+
+            #first byte is the priority, rest of payload is just zeros
+            payload = "0"*1023 
+            packet = self.prioMap[priority] + payload
+
+            socket.sendto(packet, (destIP, self.destPort))
+            toSend = toSend - 1 #decrement bytes left to send by 1kb
+
+            time.sleep(1/100000.0) #sleep for 10us to send at 100Mbps
+
+        FCT = time.time() - flowStartTime
+        return (flowSize, FCT)
+            
     def sendRoutine(self):
-        #pick random destination
-        destIP = self.pickDest()
-
+        destIP = self.pickDest()  #pick random destination
+        output = None
         if self.cong != "none":
-            #open TCP connection to destination
-            s = self.openTCPConnection(destIP, self.destPort)
+            s = self.openTCPConnection(destIP, self.destPort)  #open TCP connection to destination
+            output = self.sendFlow(s, destIP) #send a random-sized flow to random destination
         else:
-            s = self.bindUDPSocket()
+            s = self.bindUDPSocket() #create UDP socket
+            output = self.sendFlowLineRate(s, destIP) #send a random-sized flow to random destination
 
-        #send a random-sized flow to random destination
-        output = self.sendFlow(s, destIP)
         s.close()
         return output
 
 
 def main():
-
     load = float(sys.argv[1])
     runtime = float(sys.argv[2])
     output = sys.argv[3]
@@ -119,7 +136,7 @@ def main():
 
     #debug; get some member variables
     meanFlowSize = (sender.flow).meanSize()
-    bw = 1
+    
     newflow = sender.flow
     priomap = sender.prioMap
     
@@ -136,6 +153,7 @@ def main():
     #     f.write("Prio map: " + str(priomap) + "\n")
     #     f.write("Dest List: " + str(sender.destList) + "\n")
 
+    bw = 0.1 #bw is 0.1Gbps
     #calculate rate (lambda) of the Poisson process representing flow arrivals
     rate = (bw*load*(1000000000) / (meanFlowSize*8.0/1460*1500))
 

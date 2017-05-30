@@ -15,7 +15,7 @@ import os
 
 class StarTopo( Topo ):
     def build(self, n=54):    
-        linkopts = dict(bw=1000, delay = '2us')
+        linkopts = dict(bw=100, delay = '6us')
         switch = self.addSwitch('s0')
         for h in range(n):
             host = self.addHost('h%s' % (h + 1))
