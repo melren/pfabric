@@ -63,7 +63,7 @@ if args.topo not in ['star','fattree']:
 def adjustSysSettings(cong, topo):
     if(cong!="none"):
         print "Changing TCP and buffer queue size settings..."
-        os.system("sudo ./congestion/%s.sh" % cong)
+        os.system("sudo ./congestion/%s.sh>/dev/null" % cong)
         qSize = 1000
         if(cong=="mintcp"):
             # MTU = 1460 bytes, pFabric qSize = 36864 bytes ~ 36KB
@@ -90,6 +90,7 @@ def adjustSysSettings(cong, topo):
                 for j in range(0,args.kary):
                     os.system("sudo ifconfig as_%d_0-eth%d txqueuelen %d" % (i, j, qSize+1))
                     os.system("sudo ifconfig es_%d_0-eth%d txqueuelen %d" % (i, j, qSize+1))
+        print "Successfully changed TCP and buffer settings."
 
 def resetSystem():
     print "Restoring pre-run system settings..."
@@ -162,11 +163,12 @@ def main():
     net.start()
 
 
-    adjustSysSettings(args.cong, topo)
+    adjustSysSettings(args.cong, args.topo)
    
     if args.cong!="tcp": #add priority queuing to switch if needed
         switch = net.get('s0')
         addDelayQDisc(switch)
+        addPriorityQDisc(switch)
 
     #debug
     #for intf in switch.intfList():

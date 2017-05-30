@@ -2,6 +2,13 @@ import matplotlib.pyplot as plt
 import os
 import sys
 import numpy as np
+from argparse import ArgumentParser
+
+parser=ArgumentParser(description="Makes plots for pFabric experiment")
+parser.add_argument('--out', '-o',
+            help="Directory where data needed for plotting is stored",
+            default="outputs/")
+args = parser.parse_args()
 
 
 # Values needed on plot for each scheme:
@@ -18,7 +25,7 @@ linerateFCTs = []
 """ open all files and get best FCTs for each size within the traffic type """
 def getbestFCTsperSize(traffic,cong):
     for i in range(len(loads)):
-        filename = "outputs/%s_%s/load%d.txt" % (traffic, cong,i+1)
+        filename = "%s%s_%s/load%d.txt" % (args.out,traffic, cong,i+1)
         with open(filename, 'r') as f:
             for l in f.readlines():
                 data = ([float(i) for i in str.split(l)])
@@ -34,7 +41,7 @@ def parseFile(traffic,congestions,sizeInterval,avg=True):
         flowFCTs = {0.1:[], 0.2:[],0.3:[],0.4:[],0.5:[],0.6:[],0.7:[],0.8:[]}
 
         for i in sorted(flowFCTs.keys()):
-            filename = "outputs/%s_%s/load%d.txt" % (traffic, ctype,int(i*10))
+            filename = "%s%s_%s/load%d.txt" % (args.out,traffic, ctype,int(i*10))
             with open(filename, 'r') as f:
                 for l in f.readlines():
                     data = ([float(j) for j in str.split(l)])
@@ -89,7 +96,7 @@ def plotfigs(traffic,interval,avg=True):
     plt.legend(['TCP + DropTail','MinTCP + pFabric','LineRate + pFabric'], loc='upper left')
     title = 'Workload: %s (%s%s, %s%s]: %s)' % (traffic, lowerBound,lowerLabel,upperBound,upperLabel,avgLabel)
     plt.title(title)
-    plt.savefig('outputs/%s_%s_%s_%s.png' % (traffic, lowerBound,upperBound, avgLabel))
+    plt.savefig('%s%s_%s_%s_%s.png' % (args.out,traffic, lowerBound,upperBound, avgLabel))
     
     # clear lists after use
     tcpFCTs[:] = []

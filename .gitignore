@@ -11,6 +11,7 @@ outputs/
 *.pyc
 *.png
 *.log
+*.pkl
 
 #Experimental code
 workloads.py
