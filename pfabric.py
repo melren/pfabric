@@ -184,6 +184,7 @@ def main():
         print "Running flows for load: {}".format(load)
 
         #start sender on every host
+        senderList = []
         for hostStr in net.keys():
             if "h" in hostStr:
                 host = net.get(hostStr)
@@ -191,9 +192,11 @@ def main():
                 with open("sender.pkl", "wb") as f:
                     pickle.dump(sender, f, -1)
 
-                host.popen("sudo python sender.py {} {} {}".format(load, args.time, outdir))
+                sendProc = host.popen("sudo python sender.py {} {} {}".format(load, args.time, outdir))
+                senderList.append(sendProc)
 
-        sleep(args.time) #wait for senders to finish
+        for sendProc in senderList:
+            sendProc.communicate()
       
     net.stop()
 
