@@ -8,10 +8,12 @@ from mininet.util import dumpNodeConnections
 from mininet.cli import CLI
 from argparse import ArgumentParser
 from time import sleep, time
+import pickle
 from fattopo import FatTree, OVSBridgeSTP
 from startopo import StarTopo
 #from workloads import *
 from flows import flow
+from sender import Sender
 
 import os
 import random
@@ -31,7 +33,7 @@ parser.add_argument('--kary', '-k',
             help="Size of K for fat tree topology, default = 3",
             type=int,
             default=3)
-parser.add_argument('--hosts', '-n',
+parser.add_argument('--hosts', '-n',    
             help="Number of hosts to use for star topology, default = 54",
             type=int,
             default=54)
@@ -91,7 +93,7 @@ def adjustSysSettings(cong, topo):
 
 def resetSystem():
     print "Restoring pre-run system settings..."
-    os.system("sudo ./congestion/tcp.sh")
+    os.system("sudo ./congestion/tcp.sh >/dev/null")
 
 def addPriorityQDisc(switch):
     for intf in switch.intfList():
@@ -131,6 +133,14 @@ def addDelayQDisc(switch):
                 #start matching at capital 'A' onwards (i.e. 'A' = priority 1, 'P' = priority 16)
                 switch.cmd("tc filter {} parent 1:0 protocol ip u32 match u8 {} 0xff at 52 flowid 1:{}".format(device_str, hex(i+64), hex(i)))
 
+def makeHostList(net):
+    hostList = []
+    for hostStr in net.keys():
+        if "h" in hostStr:
+            host = net.get(hostStr)
+            hostList.append(host.IP())
+    return hostList
+
 def main():
     runstart = time()
     outdir = "%s/%s_%s" % (args.out,args.traffic,args.cong)
@@ -152,38 +162,39 @@ def main():
     net.start()
 
 
-    switch = net.get('s0')
-    addDelayQDisc(switch)
+    print "Starting experiment..."
+    #add priority queuing to switch
+    # switch = net.get('s0')
+    # addDelayQDisc(switch)
 
     #debug
     #for intf in switch.intfList():
     #    print switch.cmd("tc qdisc show dev "+str(intf))
 
-    #CLI(net)
-    #adjustSysSettings(args.cong, args.topo)
-    #net.pingAll()
+    loadList = [x/10.0 for x in range(1,9)]
+    hostList = makeHostList(net) #make list of host IP addresses
 
-    
-#     # Setup routing: If congestion control is mintcp or none, use pfabric
-#     # Setup connection sockets
-    
-#     # Do this in the sender/receiver: Run tests for traffic type and save outputs
-#     random.seed(1111)
-   
-#     newflow = flow(workload)
+   #start receiver on every host
+    for hostStr in net.keys():
+        if "h" in hostStr:
+            host = net.get(hostStr)
+            host.popen("sudo python receiver.py {} {} {}".format(8000, args.cong, args.time), shell=True)
 
-#     # bin the flow sizes into 16 bins
-#     binSize = newflow.maxSize()/16
+    for load in loadList: 
+        print "Running flows for load: {}".format(load)
 
-#     # grab a random flowSize per flow, determine how many flows to send, bin packets into 16 priorities 
-    
-#     # Testing seed for consistent results 
-#     randomflows = []
-#     for i in range (10):
-#         randomflows.append(newflow.randomSize())
-#         print "The chosen flow size is %d" % randomflows[i]
-#     print "The average flow size is %d" % newflow.meanSize()
-    
+        #start sender on every host
+        for hostStr in net.keys():
+            if "h" in hostStr:
+                host = net.get(hostStr)
+                sender = Sender(host.IP(),workload, hostList)
+                with open("sender.pkl", "wb") as f:
+                    pickle.dump(sender, f, -1)
+
+                host.popen("sudo python sender.py {} {} {}".format(load, args.time, outdir))
+
+        sleep(args.time) #wait for senders to finish
+      
     net.stop()
 
 #     # Plot experimental outputs
