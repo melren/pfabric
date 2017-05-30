@@ -176,7 +176,7 @@ def main():
     loadList = [x/10.0 for x in range(1,9)]
     hostList = makeHostList(net) #make list of host IP addresses
 
-    print "Starting experiment..."
+    print "Starting experiment with cong={}, workload={}".format(args.cong, args.traffic)
 
     #start receiver on every host
     for hostStr in net.keys():
@@ -192,7 +192,7 @@ def main():
         for hostStr in net.keys():
             if "h" in hostStr:
                 host = net.get(hostStr)
-                sender = Sender(host.IP(),workload, hostList)
+                sender = Sender(host.IP(), workload, args.cong, hostList)
                 with open("sender.pkl", "wb") as f:
                     pickle.dump(sender, f, -1)
 

@@ -10,7 +10,7 @@ from flows import flow
 
 class Sender(object):
 
-    def __init__(self, sourceIP, flowSource = "flows/websearch.txt", destList = [], destPort = 8000, cong = "mintcp"):
+    def __init__(self, sourceIP, flowSource = "flows/websearch.txt", cong = "mintcp", destList = [], destPort = 8000):
         self.IP = sourceIP
         self.flowSource = flowSource 
         self.destList = destList

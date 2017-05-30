@@ -5,7 +5,7 @@ sudo mn -c
 
 hosts=15
 runtime=60
-savedir="/outputs"
+savedir="outputs/"
 declare -a traffic=("web" "data")
 declare -a cong=("tcp" "mintcp" "none")
 
