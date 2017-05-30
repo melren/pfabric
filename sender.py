@@ -30,6 +30,10 @@ class Sender(object):
     def createFlowObj(self):
         self.flow = flow(self.flowSource)
 
+    def setTimers(self, st, rt):
+        self.starttime = st
+        self.runtime = rt
+
     def createPrioMap(self):
         val = 65
         self.prioMap = {}
@@ -59,9 +63,12 @@ class Sender(object):
     def sendFlow(self, socket, destIP):
         flowSize = self.flow.randomSize()
         toSend = flowSize
+        flowStartTime = time.time()
 
-        startTime = time.time()
         while toSend > 0:
+            if (time.time() - self.starttime) > self.runtime:
+                return None
+
             priority = self.flow.getPriority(flowSize)
 
             #first byte is the priority, rest of payload is just zeros
@@ -75,9 +82,8 @@ class Sender(object):
 
             toSend = toSend - 1 #decrement bytes left to send by 1kb
 
-        FCT = time.time() - startTime
+        FCT = time.time() - flowStartTime
         return (flowSize, FCT)
-
 
     def sendRoutine(self):
         #pick random destination
@@ -90,10 +96,9 @@ class Sender(object):
             s = self.bindUDPSocket()
 
         #send a random-sized flow to random destination
-        (flowSize, FCT) = self.sendFlow(s, destIP)
+        output = self.sendFlow(s, destIP)
         s.close()
-
-        return (flowSize, FCT)
+        return output
 
 
 def main():
@@ -135,31 +140,33 @@ def main():
     rate = (bw*load*(1000000000) / (meanFlowSize*8.0/1460*1500))
 
     start = time.time()
+    sender.setTimers(start, runtime)
     while (time.time() - start) < runtime:
         #the inter-arrival time for a Poisson process of rate L is exponential with rate L
         waittime = random.expovariate(rate)
         time.sleep(waittime)
 
         output = sender.sendRoutine()
-        flowSize =  output[0]
-        FCT = output[1]
- 
-        result = "{} {}\n".format(flowSize, FCT)
+        if output is not None: 
+            flowSize =  output[0]
+            FCT = output[1]
+     
+            result = "{} {}\n".format(flowSize, FCT)
 
-        #write flowSize and completion time to file named by 'load'
-        with open(outfile, "a") as f:
-            while True:
-                try:
-                    fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB) #lock the file
-                    break
-                except IOError as e:
-                    if e.errno != errno.EAGAIN:                    
-                        raise
-                    else:
-                        time.sleep(0.1)
-           
-            f.write(result)
-            fcntl.flock(f, fcntl.LOCK_UN)
+            #write flowSize and completion time to file named by 'load'
+            with open(outfile, "a") as f:
+                while True:
+                    try:
+                        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB) #lock the file
+                        break
+                    except IOError as e:
+                        if e.errno != errno.EAGAIN:                    
+                            raise
+                        else:
+                            time.sleep(0.1)
+               
+                f.write(result)
+                fcntl.flock(f, fcntl.LOCK_UN)
 
         
 
