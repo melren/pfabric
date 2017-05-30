@@ -53,3 +53,10 @@ class flow():
     def maxSize(self):
         return self.flowSizes[len(self.flowSizes)-1]
 
+    def getPriority(self, flowSize):
+        maxSize = self.maxSize()
+        if flowSize == maxSize:
+            return 16
+        else:
+            return (flowSize / (maxSize / 16)) + 1
+

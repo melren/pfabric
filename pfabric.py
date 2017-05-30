@@ -167,7 +167,6 @@ def main():
    
     if args.cong!="tcp": #add priority queuing to switch if needed
         switch = net.get('s0')
-        addDelayQDisc(switch)
         addPriorityQDisc(switch)
 
     #debug
