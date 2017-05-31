@@ -8,7 +8,7 @@ MiniNet/
 
 #Program folders
 outputs/
-outputs_old/
+outputs_data/
 
 #Other file types to ignore
 *.pyc

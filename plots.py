@@ -77,29 +77,29 @@ def parseFile(traffic,congestions,sizeInterval,avg=True):
 def plotfigs(traffic,interval,avg=True):
     plt.figure()
     avgLabel = 'Avg' if avg else '99th percentile'
-    upperLabel = 'KB' if interval[1]<10000 else 'MB'
+    upperLabel = 'KB]' if interval[1]<10000 else 'MB]'
     lowerLabel = ''
+    if interval[0] == 10000:
+        lowerLabel='MB'
     if interval[0] == 100:
         lowerLabel='KB'
-    if interval[0] > 100:
-        lowerlabel='MB'
     lowerBound = str(interval[0]) if interval[0]<10000 else '10'
     upperBound = '100'
     if interval[1] == 10000:
         upperBound = '10'
     if interval[1] > 10000:
         upperBound = 'Infinity'
-        upperLabel = ''
+        upperLabel = ')'
     # plot loads vs the right FCT list
     plt.plot(loads, tcpFCTs,color='r',marker='o',ls='solid')
     plt.plot(loads, mintcpFCTs,color='b',marker='s',ls='dashed')
-    plt.plot(loads, linerateFCTs,color='g',marker='^', ls='dotted')
+    #plt.plot(loads, linerateFCTs,color='g',marker='^', ls='dotted')
     plt.xlim([0.1,0.8])
     plt.xlabel('Load')
     plt.ylabel('Normalized Flow Completion Time')
-    plt.legend(['TCP + DropTail','MinTCP + pFabric','LineRate + pFabric'], loc='upper left')
-    #plt.legend(['TCP + DropTail','MinTCP + pFabric'], loc='upper left')
-    title = 'Workload: %s (%s%s, %s%s]: %s)' % (traffic, lowerBound,lowerLabel,upperBound,upperLabel,avgLabel)
+    #plt.legend(['TCP + DropTail','MinTCP + pFabric','LineRate + pFabric'], loc='upper left')
+    plt.legend(['TCP + DropTail','MinTCP + pFabric'], loc='upper left')
+    title = 'Workload: %s (%s%s, %s%s: %s' % (traffic, lowerBound,lowerLabel,upperBound,upperLabel,avgLabel)
     plt.title(title)
     plt.savefig('%s%s_%s_%s_%s.png' % (args.out,traffic, lowerBound,upperBound, avgLabel))
     
@@ -110,8 +110,10 @@ def plotfigs(traffic,interval,avg=True):
 
 def main():
     traffic = ["data", "web"]
-    cong = ["tcp", "mintcp", "none"]
-
+    #traffic = ["web"]
+    #cong = ["tcp", "mintcp", "none"]
+    cong = ["tcp", "mintcp"]
+    
     for t in traffic:
         for c in cong:
             getbestFCTsperSize(t,c)
