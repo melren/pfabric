@@ -5,7 +5,10 @@ oftest/
 openflow/
 pox/
 MiniNet/
+
+#Program folders
 outputs/
+outputs_old/
 
 #Other file types to ignore
 *.pyc

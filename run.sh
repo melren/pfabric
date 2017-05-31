@@ -3,10 +3,10 @@
 #clean up mininet
 sudo mn -c
 
-hosts=15
-runtime=60
+hosts=54
+runtime=240
 savedir="outputs/"
-declare -a traffic=("web" "data")
+declare -a traffic=("data" "web")
 declare -a cong=("tcp" "mintcp" "none")
 
 sudo rm -rf $savedir

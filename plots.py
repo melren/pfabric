@@ -1,7 +1,11 @@
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 import os
+import matplotlib.pyplot as plt
 import sys
 import numpy as np
+
+
 from argparse import ArgumentParser
 
 parser=ArgumentParser(description="Makes plots for pFabric experiment")
@@ -94,6 +98,7 @@ def plotfigs(traffic,interval,avg=True):
     plt.xlabel('Load')
     plt.ylabel('Normalized Flow Completion Time')
     plt.legend(['TCP + DropTail','MinTCP + pFabric','LineRate + pFabric'], loc='upper left')
+    #plt.legend(['TCP + DropTail','MinTCP + pFabric'], loc='upper left')
     title = 'Workload: %s (%s%s, %s%s]: %s)' % (traffic, lowerBound,lowerLabel,upperBound,upperLabel,avgLabel)
     plt.title(title)
     plt.savefig('%s%s_%s_%s_%s.png' % (args.out,traffic, lowerBound,upperBound, avgLabel))
