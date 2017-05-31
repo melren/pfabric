@@ -110,7 +110,7 @@ def plotfigs(traffic,interval,avg=True):
 
 def main():
     traffic = ["data", "web"]
-    #traffic = ["web"]
+    #traffic = ["data"]
     #cong = ["tcp", "mintcp", "none"]
     cong = ["tcp", "mintcp"]
     
