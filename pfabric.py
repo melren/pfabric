@@ -98,41 +98,19 @@ def resetSystem():
 
 def addPriorityQDisc(switch):
     for intf in switch.intfList():
-        if (str(intf)!="lo"):
-            #clear any old queueing disciplines
-            switch.cmd("tc qdisc del dev {} root".format(str(intf)))
-            device_str = "add dev "+str(intf)
-            print switch.cmd("tc qdisc "+device_str+" root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
-            for i in range(1,17):
-                #add bandwidth limit
-                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 100mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
+        device_str = "add dev "+str(intf)
+        switch.cmd("tc qdisc {} root handle 1: htb default 1".format(device_str))
+        switch.cmd("tc class {} parent 1: classid 1:1 htb rate 100mbit ceil 100mbit".format(device_str))
+        switch.cmd("tc qdisc "+device_str+" parent 1:1 handle 2: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
+        delay = "6us"
+        for i in range(2,17):
+            print switch.cmd("tc qdisc {} parent 2:{} handle {}: netem delay {}".format(device_str, hex(i), hex(i+2), delay))
+            #match from 'B'->2 to 'O'->16
+            print switch.cmd("tc filter "+device_str+"  parent 2:0 protocol ip u32 match u8 {} 0xff at 52 flowid 2:{}".format(hex(64+i),hex(i)))
 
-                #add delay 
-                delay = "6us"
-                print switch.cmd("tc qdisc {} parent {}:1 handle {}: netem delay {}".format(device_str, hex(i+10), i+20, delay))
-
-                #start matching at capital 'A' onwards (i.e. 'A' = priority 1, 'P' = priority 16)
-                switch.cmd("tc filter {} parent 1:0 protocol ip u32 match u8 {} 0xff at 52 flowid 1:{}".format(device_str, hex(i+64), hex(i)))
-                
-
-def addDelayQDisc(switch):
+def deleteQDiscs(switch):
     for intf in switch.intfList():
-        if (str(intf)!="lo"):
-            #clear any old queueing disciplines
-            switch.cmd("tc qdisc del dev {} root".format(str(intf)))
-            device_str = "add dev "+str(intf)
-
-            print switch.cmd("tc qdisc "+device_str+" root handle 1: prio bands 16 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0")
-            for i in range(1,17):
-                #add bandwidth limit
-                switch.cmd("tc qdisc {} parent 1:{} handle {}: tbf rate 100mbit buffer 1600 limit 5000".format(device_str, hex(i), hex(i+10)))
-
-                #add delay based on priority (low priority = high delay)
-                delay = str(i*500) + "ms"
-                print switch.cmd("tc qdisc {} parent {}:1 handle {}: netem delay {}".format(device_str, hex(i+10), i+20, delay))
-
-                #start matching at capital 'A' onwards (i.e. 'A' = priority 1, 'P' = priority 16)
-                switch.cmd("tc filter {} parent 1:0 protocol ip u32 match u8 {} 0xff at 52 flowid 1:{}".format(device_str, hex(i+64), hex(i)))
+        switch.cmd("tc qdisc del dev {} root".format(str(intf)))
 
 def makeHostList(net):
     hostList = []
@@ -167,6 +145,7 @@ def main():
    
     if args.cong!="tcp": #add priority queuing to switch if needed
         switch = net.get('s0')
+        deleteQDiscs(switch)
         addPriorityQDisc(switch)
 
     #debug
