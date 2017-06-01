@@ -8,7 +8,7 @@ import pickle
 from flows import flow
 
 
-class Sender(object):
+class SenderLow(object):
 
     def __init__(self, sourceIP, flowSource = "flows/websearch.txt", cong = "mintcp", destList = [], destPort = 8000):
         self.IP = sourceIP
@@ -68,12 +68,12 @@ class Sender(object):
             if (time.time() - self.starttime) > self.runtime:
                 return None
 
-            priority = self.flow.getPriority(flowSize)
+            priority = 16
 
             #first byte is the priority, rest of payload is just zeros
-            payload = "0"*1023 
-            packet = self.prioMap[priority] + payload
-
+            #payload = "0"*1023 
+            #packet = self.prioMap[priority] + payload
+            packet = "Pthis is a test"
             socket.send(packet)
            
             toSend = toSend - 1 #decrement bytes left to send by 1kb
@@ -136,16 +136,16 @@ class Sender(object):
 
 def debug():
     flowSize = int(sys.argv[1])
-    print "Entered routine"
+
     with open("sender.pkl", "rb") as f:
         sender = pickle.load(f)
-    sender.createFlowObj()
 
-    outfile = "test.txt"
-    with open(outfile, "a") as f:
-        f.write("Starting routine for flow size {}\n".format(flowSize))
+    sender.createFlowObj()
     start = time.time()
     sender.setTimers(start, 10000)
+
+    outfile = "test.txt"
+
     for i in range(10):
         startTime = time.time()
         output = sender.sendRoutineWithSize(flowSize)
@@ -155,78 +155,9 @@ def debug():
             FCT = output[1]
 
             with open(outfile, "a") as f:
-                f.write("Flow size {}: Completed flow number {} with FCT {}\n".format(flowSize, i, FCT))
+                f.write("From {}: Flow size {}: Completed flow number {} with FCT {}\n".format(sender.IP, flowSize, i, FCT))
 
 
-
-
-
-def main():
-    load = float(sys.argv[1])
-    runtime = float(sys.argv[2])
-    output = sys.argv[3]
-
-    #DEBUG; set random seed to fixed value so sequence is deterministic
-    random.seed(1111)
-
-    #open pickled sender (created by pfabric.py)
-    sender = ""
-    with open("sender.pkl", "rb") as f:
-        sender = pickle.load(f)
-    
-    sender.createFlowObj()
-
-    #debug; get some member variables
-    meanFlowSize = (sender.flow).meanSize()
-    
-    newflow = sender.flow
-    priomap = sender.prioMap
-    
-    outfile = "{}/load{}.txt".format(output, int(load*10))
-
-    # with open(outfile,"w") as f:  #create new outfile (deletes any old data)
-    #     f.write("")
-    #     f.write("Load: " + str(load) +"\n")
-    #     f.write("Runtime: " + str(runtime) + "\n")
-    #     f.write("mean flow size: " + str(meanFlowSize) + "\n")
-    #     f.write("BW: " + str(bw) + "\n")
-    #     f.write("Flow sizes: " + str(newflow.flowSizes) + "\n")
-    #     f.write("Flow weights: " + str(newflow.flowWeights) + "\n") 
-    #     f.write("Prio map: " + str(priomap) + "\n")
-    #     f.write("Dest List: " + str(sender.destList) + "\n")
-
-    bw = 0.1 #bw is 0.1Gbps
-    #calculate rate (lambda) of the Poisson process representing flow arrivals
-    rate = (bw*load*(1000000000) / (meanFlowSize*8.0/1460*1500))
-
-    start = time.time()
-    sender.setTimers(start, runtime)
-    while (time.time() - start) < runtime:
-        #the inter-arrival time for a Poisson process of rate L is exponential with rate L
-        waittime = random.expovariate(rate)
-        time.sleep(waittime)
-
-        output = sender.sendRoutine()
-        if output is not None: 
-            flowSize =  output[0]
-            FCT = output[1]
-     
-            result = "{} {}\n".format(flowSize, FCT)
-
-            #write flowSize and completion time to file named by 'load'
-            with open(outfile, "a") as f:
-                while True:
-                    try:
-                        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB) #lock the file
-                        break
-                    except IOError as e:
-                        if e.errno != errno.EAGAIN:                    
-                            raise
-                        else:
-                            time.sleep(0.1)
-               
-                f.write(result)
-                fcntl.flock(f, fcntl.LOCK_UN)
 
         
 
