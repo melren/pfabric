@@ -11,13 +11,11 @@ from time import sleep, time
 import pickle
 from fattopo import FatTree, OVSBridgeSTP
 from startopo import StarTopo
-#from workloads import *
 from flows import flow
 from sender import Sender
 
 import os
 import random
-#import numpy as np
 
 parser = ArgumentParser(description="Runs pFabric Implementation")
 parser.add_argument('--out', '-o',
@@ -183,7 +181,6 @@ def main():
       
     net.stop()
 
-#     # Plot experimental outputs
     
     resetSystem()
     print "Program for congestion control:%s, traffic type:%s completed in %.2fs" % (args.cong, args.traffic,time()-runstart)

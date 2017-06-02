@@ -4,10 +4,11 @@
 sudo mn -c
 
 hosts=54
-runtime=180
+runtime=240
 savedir="outputs/"
 declare -a traffic=("data" "web")
-declare -a cong=("tcp" "mintcp" "none")
+#declare -a cong=("tcp" "mintcp" "none")
+declare -a cong=("tcp" "mintcp")
 
 sudo rm -rf $savedir
 

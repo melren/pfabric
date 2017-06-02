@@ -100,7 +100,7 @@ class Sender(object):
             socket.sendto(packet, (destIP, self.destPort))
             toSend = toSend - 1 #decrement bytes left to send by 1kb
 
-            time.sleep(1/100000.0) #sleep for 10us to send at 100Mbps
+            #time.sleep(1/100000.0) #sleep for 10us to send at 100Mbps
 
         FCT = time.time() - flowStartTime
         return (flowSize, FCT)
@@ -155,8 +155,7 @@ def main():
 
     bw = 0.1 #bw is 0.1Gbps
     #calculate rate (lambda) of the Poisson process representing flow arrivals
-    rate = (bw*load*(1000000000) / (meanFlowSize*8.0/1460*1500))
-
+    rate = (bw*load*(1000000000) / (meanFlowSize*1024*8.0/1024*1460))
     start = time.time()
     sender.setTimers(start, runtime)
     while (time.time() - start) < runtime:
