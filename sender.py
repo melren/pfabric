@@ -1,4 +1,5 @@
 import sys
+import struct
 import fcntl
 import socket
 import time
@@ -60,6 +61,11 @@ class Sender(object):
         dest = self.destList[i]
         return dest
 
+    def getTCPUnacked(self,s):
+        fmt = "B"*7+"I"*21
+        x = struct.unpack(fmt, s.getsockopt(socket.IPPROTO_TCP, socket.TCP_INFO, 92))
+        return int(x[11])
+
     def sendFlow(self, socket, destIP):
         flowSize = self.flow.randomSize()
         toSend = flowSize
@@ -78,6 +84,12 @@ class Sender(object):
             socket.send(packet)
            
             toSend = toSend - 1 #decrement bytes left to send by 1kb
+
+        numUnacked = self.getTCPUnacked(socket)
+        while (numUnacked > 0):
+            numUnacked = self.getTCPUnacked(socket)
+            if (time.time() - self.starttime) > self.runtime:
+                return None
 
         FCT = time.time() - flowStartTime
         return (flowSize, FCT)
@@ -155,7 +167,7 @@ def main():
 
     bw = 0.1 #bw is 0.1Gbps
     #calculate rate (lambda) of the Poisson process representing flow arrivals
-    rate = (bw*load*(1000000000) / (meanFlowSize*1024*8.0/1024*1460))
+    rate = (bw*load*(1000000000) / (meanFlowSize*1000*8.0))
     start = time.time()
     sender.setTimers(start, runtime)
     while (time.time() - start) < runtime:

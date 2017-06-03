@@ -4,8 +4,8 @@ import os
 class flow():
     flowSizes = []
     flowWeights = []
-    avgSearchSize = 1138
-    avgDataMiningSize = 5117
+    avgSearchSize = 1620
+    avgDataMiningSize = 9500
     flowType = ""
 
     def __init__(self, filename):
