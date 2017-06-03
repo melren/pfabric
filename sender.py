@@ -103,7 +103,7 @@ class Sender(object):
             if (time.time() - self.starttime) > self.runtime:
                 return None
             
-            priority = self.flow.getPriority(flowSize)
+            priority = self.flow.getPriority(toSend)
 
             #first byte is the priority, rest of payload is just zeros
             payload = "0"*1023 
