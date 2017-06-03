@@ -173,7 +173,7 @@ def main():
                 with open("sender.pkl", "wb") as f:
                     pickle.dump(sender, f, -1)
 
-                sendProc = host.popen("sudo python sender.py {} {} {}".format(load, args.time, outdir))
+                sendProc = host.popen("sudo python sender.py {} {} {} {}".format(load, args.time, outdir, args.hosts))
                 senderList.append(sendProc)
 
         for sendProc in senderList:

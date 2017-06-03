@@ -135,6 +135,7 @@ def main():
     load = float(sys.argv[1])
     runtime = float(sys.argv[2])
     output = sys.argv[3]
+    numhosts = int(sys.argv[4])
 
     #DEBUG; set random seed to fixed value so sequence is deterministic
     #random.seed(1111)
@@ -168,7 +169,7 @@ def main():
 
     bw = 0.1 #bw is 0.1Gbps
     #calculate rate (lambda) of the Poisson process representing flow arrivals
-    rate = (bw*load*(1000000000) / (meanFlowSize*1000*8.0))
+    rate = (numhosts*bw*load*(1000000000) / (meanFlowSize*1000*8.0))
     start = time.time()
     sender.setTimers(start, runtime)
     while (time.time() - start) < runtime:
