@@ -30,11 +30,40 @@ linerateFCTs = []
 def makeFCTLog(traffic, cong):
     for i in range(len(loads)):
         sendLog = "%s%s_%s/sendlog_load%d.txt" % (args.out,traffic, cong,i+1)
+        rcvLog = "%s%s_%s/rcvlog_load%d.txt" % (args.out,traffic, cong,i+1)
+        
         sendHistory = {}
         with open(sendLog, 'r') as f:
-            for l in f.readLines():
-                entry = "".split(l)
-                IP = 
+            for l in f.readlines():
+                entry = l.split(" ")
+                IP = entry[1]
+                if IP not in sendHistory: 
+                    sendHistory[IP] = [(int(entry[2]), float(entry[3]))]
+                else:
+                    sendHistory[IP].append((int(entry[2]), float(entry[3])))
+
+        rcvHistory = {}
+        with open(rcvLog, 'r') as f:
+            for l in f.readlines():
+                entry = l.split(" ")
+                IP = entry[1]
+                if IP not in rcvHistory:
+                    rcvHistory[IP] = [float(entry[2])]
+                else:
+                    rcvHistory[IP].append(float(entry[2]))
+
+        outfile = "%s%s_%s/FCTlog_load%d.txt" % (args.out,traffic, cong,i+1)
+        with open(outfile, 'a') as f: 
+            for IP, sendData in sendHistory.iteritems():
+                print sendData
+                rcvData = rcvHistory[IP]
+                print rcvData
+                for i in range(len(rcvData)):
+                    sendTup = sendData[i]
+                    FCT = rcvData[i] - sendTup[1]
+                    result = "{} {}".format(sendTup[0], FCT)
+                    f.write(result)
+
 
 
 
@@ -122,6 +151,10 @@ def plotfigs(traffic,interval,avg=True):
     mintcpFCTs[:] = []
     linerateFCTs[:] = []
 
+
+def debug():
+    makeFCTLog("data", "tcp")
+
 def main():
     traffic = ["data", "web"]
     #cong = ["tcp", "mintcp", "none"]
@@ -145,4 +178,5 @@ def main():
 
 
 if __name__=='__main__':
-    main()
+    #main()
+    debug()
