@@ -137,7 +137,8 @@ def main():
     output = sys.argv[3]
 
     #DEBUG; set random seed to fixed value so sequence is deterministic
-    random.seed(1111)
+    #random.seed(1111)
+    random.seed()
 
     #open pickled sender (created by pfabric.py)
     sender = ""
