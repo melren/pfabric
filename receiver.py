@@ -8,8 +8,8 @@ import time
 import threading
 import fcntl
 
-def writeToFile(sendIP, time, outfile):
-    result = "RCVD {} {}\n".format(sendIP, time)
+def writeToFile(sendIP, time, count, outfile):
+    result = "RCVD {} {} {}\n".format(sendIP, count, time)
     with open(outfile, "a") as f:
         while True:
             try:
@@ -26,12 +26,15 @@ def writeToFile(sendIP, time, outfile):
 
 
 def handleClient(conn, addr, outfile): 
+    count = 0
     while 1: 
         data = conn.recv(1024)
-        if not data:
+        if data:
+            count += 1
+        else:
             break
     conn.close()
-    writeToFile(addr[0], time.time(), outfile)
+    writeToFile(addr[0], time.time(), count, outfile)
 
 def listen(rcv_port, cong, exp_time, outfile):
     TIMEOUT = exp_time + 2

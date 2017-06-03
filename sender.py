@@ -75,7 +75,7 @@ class Sender(object):
             if (time.time() - self.starttime) > self.runtime:
                 return None
 
-            priority = self.flow.getPriority(flowSize)
+            priority = self.flow.getPriority(toSend)
 
             #first byte is the priority, rest of payload is just zeros
             payload = "0"*1023 
@@ -92,7 +92,7 @@ class Sender(object):
         #         return None
 
         FCT = time.time() - flowStartTime
-        return (flowSize, flowStartTime)
+        return (flowSize, flowStartTime, destIP)
 
     def sendFlowLineRate(self, socket, destIP):
         flowSize = self.flow.randomSize()
