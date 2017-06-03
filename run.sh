@@ -3,7 +3,7 @@
 #clean up mininet
 sudo mn -c
 
-hosts=54
+hosts=28
 runtime=240
 savedir="outputs/"
 declare -a traffic=("data" "web")
