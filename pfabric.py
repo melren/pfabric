@@ -27,6 +27,10 @@ parser.add_argument('--traffic', '-t',
 parser.add_argument('--cong','-c',
             help="Type of congestion control, use: 'tcp', 'mintcp', or 'none'(udp)",
             required=True)
+parser.add_argument('--load',
+            help="Desired load on the network",
+            type=float,
+            required=True)
 parser.add_argument('--kary', '-k',
             help="Size of K for fat tree topology, default = 3",
             type=int,
@@ -42,6 +46,7 @@ parser.add_argument('--time',
 parser.add_argument('--topo',
             help="Type of topology to use for network: 'star' or 'fattree', default = star",
             default="star")
+
 
 args = parser.parse_args()
 
@@ -150,40 +155,46 @@ def main():
     #for intf in switch.intfList():
     #    print switch.cmd("tc qdisc show dev "+str(intf))
 
-    loadList = [x/10.0 for x in range(1,9)]
+    #loadList = [x/10.0 for x in range(1,9)]
+    load = args.load
     hostList = makeHostList(net) #make list of host IP addresses
 
     print "Starting experiment with cong={}, workload={}".format(args.cong, args.traffic)
 
+    # for load in loadList: 
+    print "Running flows for load: {}".format(load)
+
     #start receiver on every host
+    rcvList = []
     for hostStr in net.keys():
         if "h" in hostStr:
             host = net.get(hostStr)
-            host.popen("sudo python receiver.py {} {} {}".format(8000, args.cong, args.time), shell=True)
+            rcvProc = host.popen("sudo python receiver.py {} {} {} {} {}".format(8000, args.cong, args.time, load, outdir))
+            rcvList.append(rcvProc)
 
-    for load in loadList: 
-        print "Running flows for load: {}".format(load)
+    #start sender on every host
+    senderList = []
+    for hostStr in net.keys():
+        if "h" in hostStr:
+            host = net.get(hostStr)
+            sender = Sender(host.IP(), workload, args.cong, hostList)
+            with open("sender.pkl", "wb") as f:
+                pickle.dump(sender, f, -1)
 
-        #start sender on every host
-        senderList = []
-        for hostStr in net.keys():
-            if "h" in hostStr:
-                host = net.get(hostStr)
-                sender = Sender(host.IP(), workload, args.cong, hostList)
-                with open("sender.pkl", "wb") as f:
-                    pickle.dump(sender, f, -1)
+            sendProc = host.popen("sudo python sender.py {} {} {}".format(load, args.time, outdir))
+            senderList.append(sendProc)
 
-                sendProc = host.popen("sudo python sender.py {} {} {}".format(load, args.time, outdir))
-                senderList.append(sendProc)
+    for sendProc in senderList:
+        sendProc.communicate()
 
-        for sendProc in senderList:
-            sendProc.communicate()
-      
+    for rcvProc in rcvList:
+        rcvProc.kill()
+  
     net.stop()
 
     
     resetSystem()
-    print "Program for congestion control:%s, traffic type:%s completed in %.2fs" % (args.cong, args.traffic,time()-runstart)
+    #print "Program for congestion control:%s, traffic type:%s completed in %.2fs" % (args.cong, args.traffic,time()-runstart)
 if __name__ == '__main__':
     main()
     

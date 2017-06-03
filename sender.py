@@ -85,14 +85,14 @@ class Sender(object):
            
             toSend = toSend - 1 #decrement bytes left to send by 1kb
 
-        numUnacked = self.getTCPUnacked(socket)
-        while (numUnacked > 0):
-            numUnacked = self.getTCPUnacked(socket)
-            if (time.time() - self.starttime) > self.runtime:
-                return None
+        # numUnacked = self.getTCPUnacked(socket)
+        # while (numUnacked > 0):
+        #     numUnacked = self.getTCPUnacked(socket)
+        #     if (time.time() - self.starttime) > self.runtime:
+        #         return None
 
         FCT = time.time() - flowStartTime
-        return (flowSize, FCT)
+        return (flowSize, flowStartTime)
 
     def sendFlowLineRate(self, socket, destIP):
         flowSize = self.flow.randomSize()
@@ -153,7 +153,7 @@ def main():
     newflow = sender.flow
     priomap = sender.prioMap
     
-    outfile = "{}/load{}.txt".format(output, int(load*10))
+    outfile = "{}/sendlog_load{}.txt".format(output, int(load*10))
 
     # with open(outfile,"w") as f:  #create new outfile (deletes any old data)
     #     f.write("")
@@ -179,9 +179,10 @@ def main():
         output = sender.sendRoutine()
         if output is not None: 
             flowSize =  output[0]
-            FCT = output[1]
+            flowStartTime = output[1]
      
-            result = "{} {}\n".format(flowSize, FCT)
+            #result = "{} {}\n".format(flowSize, FCT)
+            result = "SEND {} {} {}\n".format(sender.IP, flowSize, flowStartTime)
 
             #write flowSize and completion time to file named by 'load'
             with open(outfile, "a") as f:

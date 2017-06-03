@@ -26,6 +26,20 @@ tcpFCTs = []
 mintcpFCTs = []
 linerateFCTs = []
 
+
+def makeFCTLog(traffic, cong):
+    for i in range(len(loads)):
+        sendLog = "%s%s_%s/sendlog_load%d.txt" % (args.out,traffic, cong,i+1)
+        sendHistory = {}
+        with open(sendLog, 'r') as f:
+            for l in f.readLines():
+                entry = "".split(l)
+                IP = 
+
+
+
+
+
 """ open all files and get best FCTs for each size within the traffic type """
 def getbestFCTsperSize(traffic,cong):
     for i in range(len(loads)):
