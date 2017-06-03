@@ -1,5 +1,6 @@
 import random
 import os
+import math
 
 class flow():
     flowSizes = []
@@ -58,5 +59,6 @@ class flow():
         if flowSize == maxSize:
             return 16
         else:
-            return (flowSize / (maxSize / 16)) + 1
+            return math.ceil(math.log(flowSize)/math.log(maxSize)*16)+1
+            #return (flowSize / (maxSize / 16)) + 1
 
