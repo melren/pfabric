@@ -6,6 +6,7 @@ import time
 import threading
 import random
 import pickle
+import errno
 from flows import flow
 
 
@@ -183,6 +184,7 @@ def main():
         if output is not None: 
             flowSize =  output[0]
             flowStartTime = output[1]
+            flowStartTime = "{:.4f}".format(flowStartTime);
      
             #result = "{} {}\n".format(flowSize, FCT)
             result = "SEND {} {} {} {}\n".format(sender.IP, output[2], flowSize, flowStartTime)

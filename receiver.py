@@ -2,14 +2,16 @@ from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
 from mininet.log import setLogLevel
+import errno
 import sys
 import socket
 import time
 import threading
 import fcntl
 
-def writeToFile(sendIP, rcv_ip, time, count, outfile):
-    result = "RCVD {} {} {} {}\n".format(sendIP, rcv_ip, count, time)
+def writeToFile(sendIP, rcv_ip, rcv_time, count, outfile):
+    rcv_time = "{:.4f}".format(rcv_time);
+    result = "RCVD {} {} {} {}\n".format(sendIP, rcv_ip, count, rcv_time)
     with open(outfile, "a") as f:
         while True:
             try:

@@ -28,7 +28,8 @@ linerateFCTs = []
 
 
 def makeFCTLog(traffic, cong):
-    for i in range(len(loads)):
+    for i in range(1):
+    #for i in range(len(loads)):
         sendLog = "%s%s_%s/sendlog_load%d.txt" % (args.out,traffic, cong,i+1)
         rcvLog = "%s%s_%s/rcvlog_load%d.txt" % (args.out,traffic, cong,i+1)
         
@@ -37,36 +38,66 @@ def makeFCTLog(traffic, cong):
             for l in f.readlines():
                 entry = l.split(" ")
                 IP = entry[1]
-                if IP not in sendHistory: 
-                    sendHistory[IP] = [(int(entry[2]), float(entry[3]))]
+                if IP not in sendHistory:
+                    pairHistory = {}
+                    pairHistory[entry[2]] = [(int(entry[3]), float(entry[4]))]
+                    sendHistory[IP] = pairHistory
                 else:
-                    sendHistory[IP].append((int(entry[2]), float(entry[3])))
+                    pairHistory = sendHistory[IP]
+                    if entry[2]  not in pairHistory:
+                        pairHistory[entry[2]] = [(int(entry[3]), float(entry[4]))]
+                    else:
+                        pairHistory[entry[2]].append((int(entry[3]), float(entry[4])))
+                    
+        #print sendHistory
 
         rcvHistory = {}
         with open(rcvLog, 'r') as f:
             for l in f.readlines():
                 entry = l.split(" ")
-                IP = entry[1]
+                IP = entry[2]
                 if IP not in rcvHistory:
-                    rcvHistory[IP] = [float(entry[2])]
+                    pairHistory = {}
+                    pairHistory[entry[1]] = [(int(entry[3]), float(entry[4]))]
+                    rcvHistory[IP] = pairHistory
                 else:
-                    rcvHistory[IP].append(float(entry[2]))
+                    pairHistory = rcvHistory[IP]
+                    if entry[1] not in pairHistory:
+                        pairHistory[entry[1]] = [(int(entry[3]), float(entry[4]))]
+                    else:
+                        pairHistory[entry[1]].append((int(entry[3]), float(entry[4])))
 
-        outfile = "%s%s_%s/FCTlog_load%d.txt" % (args.out,traffic, cong,i+1)
+        #print rcvHistory
+        #print "\n\n"
+
+        FCTs = []
+        for sendIP in sendHistory: 
+            #print "For sender IP " + str(sendIP)
+            sendPairHistory = sendHistory[sendIP]
+            for rcvIP in sendPairHistory:
+                #print "Destination {}: {}".format(rcvIP, sendPairHistory[rcvIP])
+                #print rcvHistory[rcvIP][sendIP]
+                appendFCT(sendPairHistory[rcvIP], rcvHistory[rcvIP][sendIP], FCTs)
+
+        outfile = "%s%s_%s/load%d.txt" % (args.out,traffic, cong,i+1)
         with open(outfile, 'a') as f: 
-            for IP, sendData in sendHistory.iteritems():
-                print sendData
-                rcvData = rcvHistory[IP]
-                print rcvData
-                for i in range(len(rcvData)):
-                    sendTup = sendData[i]
-                    FCT = rcvData[i] - sendTup[1]
-                    result = "{} {}".format(sendTup[0], FCT)
-                    f.write(result)
+            for t in FCTs:
+                result = "{} {}\n".format(t[0], t[1])
+                f.write(result)
+
+        #print "\n"
+        #print FCTs
 
 
-
-
+def appendFCT(send_data, rcv_data, FCTs):
+    for i in range(len(send_data)):
+        if i > len(rcv_data):
+            break
+        send_tup = send_data[i]
+        rcv_tup = rcv_data[i]
+        if send_tup[0] == rcv_tup[0]:
+            FCT = rcv_tup[1] - send_tup[1]
+            FCTs.append((send_tup[0], FCT))
 
 
 """ open all files and get best FCTs for each size within the traffic type """
@@ -159,6 +190,10 @@ def main():
     traffic = ["data", "web"]
     #cong = ["tcp", "mintcp", "none"]
     cong = ["tcp", "mintcp"]
+
+    for t in traffic:
+        for c in cong:
+            makeFCTLog(t, c)
     
     for t in traffic:
         for c in cong:
