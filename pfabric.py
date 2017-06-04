@@ -116,11 +116,11 @@ def deleteQDiscs(switch):
         switch.cmd("tc qdisc del dev {} root".format(str(intf)))
 
 def makeHostList(net):
-    hostList = []
+    hostList = ""
     for hostStr in net.keys():
         if "h" in hostStr:
             host = net.get(hostStr)
-            hostList.append(host.IP())
+            hostList = hostList + host.IP() + ","
     return hostList
 
 def main():
@@ -169,7 +169,7 @@ def main():
     for hostStr in net.keys():
         if "h" in hostStr:
             host = net.get(hostStr)
-            rcvProc = host.popen("sudo python receiver.py {} {} {} {} {}".format(8000, args.cong, args.time, load, outdir))
+            rcvProc = host.popen("sudo python receiver.py {} {} {} {} {}".format(host.IP()+":8000", args.cong, args.time, load, outdir))
             rcvList.append(rcvProc)
 
     #start sender on every host
@@ -177,15 +177,18 @@ def main():
     for hostStr in net.keys():
         if "h" in hostStr:
             host = net.get(hostStr)
-            sender = Sender(host.IP(), workload, args.cong, hostList)
-            with open("sender.pkl", "wb") as f:
-                pickle.dump(sender, f, -1)
-
-            sendProc = host.popen("sudo python sender.py {} {} {}".format(load, args.time, outdir))
+            print "Creating sender on "+host.IP()
+            # #sender = Sender(host.IP(), workload, args.cong, hostList)
+            # with open("sender.pkl", "wb") as f:
+            #     pickle.dump(sender, f, -1)
+            # sleep(0.1)
+            sendProc = host.popen("sudo python sender.py {} {} {} {} {} {} {}".format(host.IP(), workload, args.cong, hostList, load, args.time, outdir))
             senderList.append(sendProc)
 
+
     for sendProc in senderList:
-        sendProc.communicate()
+        print sendProc.communicate()
+
 
     for rcvProc in rcvList:
         rcvProc.kill()

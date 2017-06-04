@@ -132,40 +132,43 @@ class Sender(object):
 
 
 def main():
-    load = float(sys.argv[1])
-    runtime = float(sys.argv[2])
-    output = sys.argv[3]
+    hostIP = sys.argv[1]
+    workload = sys.argv[2]
+    cong = sys.argv[3]
+    hostListStr = sys.argv[4]
+    load = float(sys.argv[5])
+    runtime = float(sys.argv[6])
+    output = sys.argv[7]
 
-    #DEBUG; set random seed to fixed value so sequence is deterministic
-    #random.seed(1111)
+
     random.seed()
 
-    #open pickled sender (created by pfabric.py)
-    sender = ""
-    with open("sender.pkl", "rb") as f:
-        sender = pickle.load(f)
-    
+    hostList = hostListStr.split(",")
+    hostList.pop()
+
+    sender = Sender(hostIP, workload, cong, hostList)
     sender.createFlowObj()
 
-    #debug; get some member variables
-    meanFlowSize = (sender.flow).meanSize()
-    
-    newflow = sender.flow
-    priomap = sender.prioMap
+    # #debug; get some member variables
+ 
+    # newflow = sender.flow
+    # priomap = sender.prioMap
     
     outfile = "{}/sendlog_load{}.txt".format(output, int(load*10))
 
-    # with open(outfile,"w") as f:  #create new outfile (deletes any old data)
-    #     f.write("")
-    #     f.write("Load: " + str(load) +"\n")
-    #     f.write("Runtime: " + str(runtime) + "\n")
-    #     f.write("mean flow size: " + str(meanFlowSize) + "\n")
-    #     f.write("BW: " + str(bw) + "\n")
-    #     f.write("Flow sizes: " + str(newflow.flowSizes) + "\n")
-    #     f.write("Flow weights: " + str(newflow.flowWeights) + "\n") 
-    #     f.write("Prio map: " + str(priomap) + "\n")
-    #     f.write("Dest List: " + str(sender.destList) + "\n")
+    #with open(outfile,"a") as f:  #create new outfile (deletes any old data)
+        # f.write("")
+        # f.write("Load: " + str(load) +"\n")
+        # f.write("Runtime: " + str(runtime) + "\n")
+        # f.write("mean flow size: " + str(meanFlowSize) + "\n")
+        # f.write("BW: " + str(bw) + "\n")
+        # f.write("Flow sizes: " + str(newflow.flowSizes) + "\n")
+        # f.write("Flow weights: " + str(newflow.flowWeights) + "\n") 
+        # f.write("Prio map: " + str(priomap) + "\n")
+        #f.write("Dest List: " + str(sender.destList) + "\n")
 
+
+    meanFlowSize = (sender.flow).meanSize()
     bw = 0.1 #bw is 0.1Gbps
     #calculate rate (lambda) of the Poisson process representing flow arrivals
     rate = (bw*load*(1000000000) / (meanFlowSize*1000*8.0))
@@ -182,7 +185,7 @@ def main():
             flowStartTime = output[1]
      
             #result = "{} {}\n".format(flowSize, FCT)
-            result = "SEND {} {} {}\n".format(sender.IP, flowSize, flowStartTime)
+            result = "SEND {} {} {} {}\n".format(sender.IP, output[2], flowSize, flowStartTime)
 
             #write flowSize and completion time to file named by 'load'
             with open(outfile, "a") as f:

@@ -20,10 +20,10 @@ do
         for l in "${load[@]}"
     	do
         	sudo python pfabric.py -o $savedir -c $c -t $t -n $hosts --time $runtime --load $l
+        	sudo mn -c > /dev/null 2>&1
+    		sleep 10s
         done
     done
-    sudo mn -c > /dev/null 2>&1
-    sleep 30s
 done
 
 sudo python plots.py -o $savedir

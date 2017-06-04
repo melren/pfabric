@@ -8,8 +8,8 @@ import time
 import threading
 import fcntl
 
-def writeToFile(sendIP, time, count, outfile):
-    result = "RCVD {} {} {}\n".format(sendIP, count, time)
+def writeToFile(sendIP, rcv_ip, time, count, outfile):
+    result = "RCVD {} {} {} {}\n".format(sendIP, rcv_ip, count, time)
     with open(outfile, "a") as f:
         while True:
             try:
@@ -25,18 +25,19 @@ def writeToFile(sendIP, time, count, outfile):
         fcntl.flock(f, fcntl.LOCK_UN)
 
 
-def handleClient(conn, addr, outfile): 
-    count = 0
+def handleClient(conn, addr, rcv_ip, outfile): 
+    numBytes = 0
     while 1: 
         data = conn.recv(1024)
         if data:
-            count += 1
+            numBytes += len(data)
         else:
             break
     conn.close()
-    writeToFile(addr[0], time.time(), count, outfile)
+    count = numBytes/1024.0
+    writeToFile(addr[0], rcv_ip, time.time(), int(count), outfile)
 
-def listen(rcv_port, cong, exp_time, outfile):
+def listen(rcv_ip, rcv_port, cong, exp_time, outfile):
     TIMEOUT = exp_time + 2
     if (cong != "none"):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,7 +49,7 @@ def listen(rcv_port, cong, exp_time, outfile):
         while True: #(time.time()-start) < TIMEOUT: 
             try: 
                 conn, addr = s.accept() 
-                t = threading.Thread(target=handleClient, args=(conn, addr, outfile))
+                t = threading.Thread(target=handleClient, args=(conn, addr, rcv_ip, outfile))
                 t.start()
             except socket.error:
                 continue  
@@ -62,17 +63,19 @@ def listen(rcv_port, cong, exp_time, outfile):
 
 
 def main():
-    rcv_port = int(sys.argv[1])
+
+    rcv_addr = sys.argv[1]
     cong = sys.argv[2]
     exp_time = int(sys.argv[3])
     load = float(sys.argv[4])
     output = sys.argv[5]
 
-
+    rcv_ip = rcv_addr.split(":")[0]
+    rcv_port = int(rcv_addr.split(":")[1])
 
     outfile = "{}/rcvlog_load{}.txt".format(output, int(load*10))
 
-    listen(rcv_port, cong, exp_time, outfile)
+    listen(rcv_ip, rcv_port, cong, exp_time, outfile)
 
 if __name__ == '__main__':
     main()
