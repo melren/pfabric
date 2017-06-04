@@ -28,7 +28,7 @@ linerateFCTs = []
 
 
 def makeFCTLog(traffic, cong):
-    for i in range(1):
+    for i in range(len(loads)):
     #for i in range(len(loads)):
         sendLog = "%s%s_%s/sendlog_load%d.txt" % (args.out,traffic, cong,i+1)
         rcvLog = "%s%s_%s/rcvlog_load%d.txt" % (args.out,traffic, cong,i+1)
@@ -44,7 +44,7 @@ def makeFCTLog(traffic, cong):
                     sendHistory[IP] = pairHistory
                 else:
                     pairHistory = sendHistory[IP]
-                    if entry[2]  not in pairHistory:
+                    if entry[2] not in pairHistory:
                         pairHistory[entry[2]] = [(int(entry[3]), float(entry[4]))]
                     else:
                         pairHistory[entry[2]].append((int(entry[3]), float(entry[4])))
@@ -76,10 +76,13 @@ def makeFCTLog(traffic, cong):
             sendPairHistory = sendHistory[sendIP]
             for rcvIP in sendPairHistory:
                 #print "Destination {}: {}".format(rcvIP, sendPairHistory[rcvIP])
-                #print rcvHistory[rcvIP][sendIP]
-                appendFCT(sendPairHistory[rcvIP], rcvHistory[rcvIP][sendIP], FCTs)
+                if sendIP in rcvHistory[rcvIP]:
+                    appendFCT(sendPairHistory[rcvIP], rcvHistory[rcvIP][sendIP], FCTs)
 
         outfile = "%s%s_%s/load%d.txt" % (args.out,traffic, cong,i+1)
+        with open(outfile, "w") as f: #overwrite any old files
+            f.write("")
+
         with open(outfile, 'a') as f: 
             for t in FCTs:
                 result = "{} {}\n".format(t[0], t[1])
@@ -213,5 +216,5 @@ def main():
 
 
 if __name__=='__main__':
-    #main()
-    debug()
+    main()
+    #debug()
