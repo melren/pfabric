@@ -1,4 +1,5 @@
 import sys
+import errno
 import struct
 import fcntl
 import socket
