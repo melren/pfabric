@@ -48,11 +48,14 @@ def listen(rcv_ip, rcv_port, cong, exp_time, outfile):
         s.listen(128)
         
         start = time.time()
-        while True: #(time.time()-start) < TIMEOUT: 
+        threads = p[]
+        while (time.time()-start) < TIMEOUT: 
             try: 
                 conn, addr = s.accept() 
                 t = threading.Thread(target=handleClient, args=(conn, addr, rcv_ip, outfile))
+                threads.append(t)
                 t.start()
+
             except socket.error:
                 continue  
     else:
@@ -61,6 +64,9 @@ def listen(rcv_ip, rcv_port, cong, exp_time, outfile):
         while (time.time()-start) < TIMEOUT: 
             data, addr = s.recvfrom(1024)     
     
+    for t in threads:
+        t.join()
+        
     s.close()
 
 

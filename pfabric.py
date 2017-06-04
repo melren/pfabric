@@ -189,9 +189,10 @@ def main():
     for sendProc in senderList:
         print sendProc.communicate()
 
-
+    sleep(2)
+    
     for rcvProc in rcvList:
-        rcvProc.kill()
+        print rcvProc.communicate()
   
     net.stop()
 
