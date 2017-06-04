@@ -18,10 +18,9 @@ do
     do
         sudo python pfabric.py -o $savedir -c $c -t $t -n $hosts --time $runtime
     done
-    if [ $t = "data" ]; then
-        echo Pausing for 1min before next run to free up CPU
-        sleep 1m
-    fi
+        sudo pkill python
+        sudo mn -c > /dev/null
+        sleep 30s
 done
 
 sudo python plots.py -o $savedir
