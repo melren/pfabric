@@ -170,7 +170,7 @@ def main():
 
     bw = 0.1 #bw is 0.1Gbps
     #calculate rate (lambda) of the Poisson process representing flow arrivals
-    rate = (numhosts*bw*load*(1000000000) / (meanFlowSize*1000*8.0))
+    rate = (bw*load*(1000000000) / (meanFlowSize*1000*8.0))
     start = time.time()
     sender.setTimers(start, runtime)
     while (time.time() - start) < runtime:
