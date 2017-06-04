@@ -48,7 +48,7 @@ def listen(rcv_ip, rcv_port, cong, exp_time, outfile):
         s.listen(128)
         
         start = time.time()
-        threads = p[]
+        threads = []
         while (time.time()-start) < TIMEOUT: 
             try: 
                 conn, addr = s.accept() 
@@ -66,7 +66,7 @@ def listen(rcv_ip, rcv_port, cong, exp_time, outfile):
     
     for t in threads:
         t.join()
-        
+
     s.close()
 
 
