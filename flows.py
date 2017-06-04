@@ -55,6 +55,7 @@ class flow():
 
     def getPriority(self, flowSize):
         maxSize = self.maxSize()
-        res = ( flowSize / (maxSize/16) ) + 1 
+        res = math.ceil(math.log(flowSize)/math.log(maxSize)*16)+1
+        #res = ( flowSize / (maxSize/16) ) + 1 
         return res if res <= 16 else 16 
 
