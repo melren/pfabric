@@ -190,10 +190,10 @@ def main():
         print sendProc.communicate()
 
     sleep(2)
-    
+
     for rcvProc in rcvList:
-        print rcvProc.communicate()
-  
+        print rcvProc.kill()
+        
     net.stop()
 
     
